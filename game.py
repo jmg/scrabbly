@@ -11,30 +11,64 @@ class ScrabbleMatrix(dict):
 
         return all([not tile.coords() in self for tile in word.tiles])
 
+    def _is_empty(self):
+
+        return not self
+
+    def _is_bordering_word(self, word):
+
+        for tile in self.values():
+            for word_tile in word.tiles:
+                if tile.is_bordering(word_tile):
+                    return True
+
+        return False
+
+    def is_bordering_word(self, word):
+
+        return self._is_empty() or self._is_bordering_word(word)
+
+    def is_valid_play(self, word):
+
+        return self.has_free_space(word) and self.is_bordering_word(word)
+
     def add_word(self, word):
 
         for tile in word.tiles:
             self[tile.coords()] = tile
 
+        return word.get_points()
+
 
 class Board(object):
 
-    def __init__(self, size):
+    def __init__(self, size, players):
 
         self.height, self.width = size
         self.dictionary = Dictionary()
         self.matrix = ScrabbleMatrix()
 
+        self.players = players
+        self.turn = 0
+
+    def next_player(self):
+
+        if self.turn >= len(self.players) - 1:
+            self.turn = 0
+        else:
+            self.turn += 1
+
     def play(self, word):
 
         if self.is_valid_play(word):
-            self.matrix.add_word(word)
+            self.players[self.turn].points += self.matrix.add_word(word)
+            self.next_player()
         else:
             raise InvalidPlayError()
 
     def is_valid_play(self, word):
 
-        return self.dictionary.is_valid_word(word) and word.has_valid_position() and self.matrix.has_free_space(word)
+        return self.dictionary.is_valid_word(word) and word.has_valid_position() and self.matrix.is_valid_play(word)
 
 
 class Dictionary(object):
@@ -67,6 +101,29 @@ class Tile(object):
     def coords(self):
 
         return self.x, self.y
+
+    def _is_bordering_axis(self, tile, axis):
+
+        self_axis = getattr(self, axis)
+        tile_axis = getattr(tile, axis)
+
+        return abs(self_axis - tile_axis) <= 1
+
+    def is_bordering_x(self, tile):
+
+        return self._is_bordering_axis(tile, "x") and self.y == tile.y
+
+    def is_bordering_y(self, tile):
+
+        return self._is_bordering_axis(tile, "y") and self.x == tile.x
+
+    def is_bordering(self, tile):
+
+        return self.is_bordering_x(tile) or self.is_bordering_y(tile)
+
+    def __repr__(self):
+
+        return str(self.coords()) + " " + self.char
 
 
 class Word(object):
@@ -112,3 +169,11 @@ class Word(object):
     def get_points(self):
 
         return sum([Dictionary().letters[unicode(tile)] for tile in self.tiles])
+
+
+class Player(object):
+
+    def __init__(self, name):
+
+        self.points = 0
+        self.name = name
