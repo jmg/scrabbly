@@ -72,6 +72,16 @@ class RulesTests(unittest.TestCase):
         word_2 = Word([Tile("O", (2,0)), Tile("F", (2,1))])
         self.assertTrue(self.board.is_valid_play(word_2))
 
+    def test_is_right_inverted_word(self):
+
+        word = Word([Tile("F", (1,0)), Tile("O", (0,0))])
+        self.assertTrue(self.board.is_valid_play(word))
+
+    def test_is_wrong_inverted_word(self):
+
+        word = Word([Tile("F", (0,0)), Tile("O", (1,0))])
+        self.assertFalse(self.board.is_valid_play(word))
+
 
 class PlayerTests(unittest.TestCase):
 
@@ -91,6 +101,7 @@ class PlayerTests(unittest.TestCase):
 
         self.assertEquals(self.player1.points, 5)
         self.assertEquals(self.player2.points, 5)
+
 
 
 unittest.main()

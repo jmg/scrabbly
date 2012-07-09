@@ -130,15 +130,30 @@ class Word(object):
 
     def __init__(self, tiles):
 
+        self.alignments = {"x": self.is_horizontal, "y": self.is_vertical }
         self.tiles = tiles
+
+        self.alignment = self._get_alignment()
+        if self.alignment is not None:
+            self.tiles = self._sort_word()
 
     def __unicode__(self):
 
         return "".join([unicode(char) for char in self.tiles])
 
+    def _sort_word(self):
+
+        return sorted(self.tiles, key=lambda tile: getattr(tile, self.alignment))
+
+    def _get_alignment(self):
+
+        for axis, function in self.alignments.iteritems():
+            if function():
+                return axis
+
     def has_valid_position(self):
 
-        return self.is_vertical() or self.is_horizontal()
+        return self.alignment is not None
 
     def is_vertical(self):
 
