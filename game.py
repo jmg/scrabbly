@@ -39,6 +39,12 @@ class ScrabbleMatrix(dict):
 
         return word.get_points()
 
+    def join_word(self, word):
+
+        borders = word.get_borders()
+        for border in borders:
+            tile = self.get(border)
+
 
 class Board(object):
 
@@ -60,6 +66,8 @@ class Board(object):
 
     def play(self, word):
 
+        self.matrix.join_word(word)
+
         if self.is_valid_play(word):
             self.players[self.turn].points += self.matrix.add_word(word)
             self.next_player()
@@ -68,23 +76,19 @@ class Board(object):
 
     def is_valid_play(self, word):
 
-        return self.dictionary.is_valid_word(word) and word.has_valid_position() and self.matrix.is_valid_play(word)
+        return word.is_valid() and self.matrix.is_valid_play(word)
 
 
 class Dictionary(object):
 
-    _valid_words = ["MAKE", "A", "LIST", "OF", "WORDS"]
+    words = ["MAKE", "A", "LIST", "OF", "WORDS", "WORD"]
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
         "I": 1, "J": 8, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
-        "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "V": 4, "X": 10, "Y": 8,
-        "Z": 10,
+        "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
+        "Y": 8, "Z": 10,
     }
-
-    def is_valid_word(self, word):
-
-        return unicode(word) in self._valid_words
 
 
 class Tile(object):
@@ -98,10 +102,6 @@ class Tile(object):
 
         return self.char
 
-    def coords(self):
-
-        return self.x, self.y
-
     def _is_bordering_axis(self, tile, axis):
 
         self_axis = getattr(self, axis)
@@ -109,39 +109,47 @@ class Tile(object):
 
         return abs(self_axis - tile_axis) <= 1
 
-    def is_bordering_x(self, tile):
+    def _is_bordering_x(self, tile):
 
         return self._is_bordering_axis(tile, "x") and self.y == tile.y
 
-    def is_bordering_y(self, tile):
+    def _is_bordering_y(self, tile):
 
         return self._is_bordering_axis(tile, "y") and self.x == tile.x
 
     def is_bordering(self, tile):
 
-        return self.is_bordering_x(tile) or self.is_bordering_y(tile)
+        return self._is_bordering_x(tile) or self._is_bordering_y(tile)
+
+    def coords(self):
+
+        return self.x, self.y
 
     def __repr__(self):
 
-        return str(self.coords()) + " " + self.char
+        return "%s %s" % (self.char, str(self.coords()))
 
 
 class Word(object):
 
     def __init__(self, tiles):
 
-        self.alignments = {"x": self.is_horizontal, "y": self.is_vertical }
+        self.alignments = {"x": self._is_horizontal, "y": self._is_vertical }
         self.tiles = tiles
 
         self.alignment = self._get_alignment()
         if self.alignment is not None:
-            self.tiles = self._sort_word()
+            self.tiles = self._sort()
 
     def __unicode__(self):
 
         return "".join([unicode(char) for char in self.tiles])
 
-    def _sort_word(self):
+    def __repr__(self):
+
+        return "%s %s" % (unicode(self), str([repr(tile) for tile in self.tiles]))
+
+    def _sort(self):
 
         return sorted(self.tiles, key=lambda tile: getattr(tile, self.alignment))
 
@@ -151,23 +159,27 @@ class Word(object):
             if function():
                 return axis
 
-    def has_valid_position(self):
+    def _has_valid_position(self):
 
         return self.alignment is not None
 
-    def is_vertical(self):
+    def _is_vertical(self):
 
-        return self._get_coord_values_set("x") == 1 and self.is_continous("y")
+        return len(self._get_coord_values_set("x")) == 1 and self._is_continous("y")
 
-    def is_horizontal(self):
+    def _is_horizontal(self):
 
-        return self._get_coord_values_set("y") == 1 and self.is_continous("x")
+        return len(self._get_coord_values_set("y")) == 1 and self._is_continous("x")
 
     def _get_coord_values_set(self, coord):
 
-        return len(set(self._get_values(coord)))
+        return set(self._get_values(coord))
 
-    def is_continous(self, coord):
+    def _get_axis_value(self, axis):
+
+        return self._get_coord_values_set(axis)[0]
+
+    def _is_continous(self, coord):
 
         coords = sorted(self._get_values(coord))
 
@@ -183,7 +195,51 @@ class Word(object):
 
     def get_points(self):
 
-        return sum([Dictionary().letters[unicode(tile)] for tile in self.tiles])
+        return sum([Dictionary.letters[unicode(tile)] for tile in self.tiles])
+
+    def is_valid(self):
+
+        return unicode(self) in Dictionary.words and self._has_valid_position()
+
+    first_borders_values = {
+        "x": {"x": -1, "y": 0},
+        "y": {"x": 0, "y": -1}
+    }
+
+    last_borders_values = {
+        "x": {"x": 1, "y": 0},
+        "y": {"x": 0, "y": 1}
+    }
+
+    mid_borders_values = {
+        "x": {"x": 0, "y": 1},
+        "y": {"x": 1, "y": 0}
+    }
+
+    def _get_borders(self):
+
+        borders = []
+
+        y = self.tiles[0].y + self.first_borders_values[self.alignment]["y"]
+        x = self.tiles[0].x + self.first_borders_values[self.alignment]["x"]
+
+        borders.append((x, y))
+
+        y = self.tiles[-1].y + self.last_borders_values[self.alignment]["y"]
+        x = self.tiles[-1].x + self.last_borders_values[self.alignment]["x"]
+
+        borders.append((x, y))
+
+        for tile in self.tiles:
+
+            borders.append((tile.x + self.mid_borders_values[self.alignment]["x"], tile.y + self.mid_borders_values[self.alignment]["y"]))
+            borders.append((tile.x - self.mid_borders_values[self.alignment]["x"], tile.y - self.mid_borders_values[self.alignment]["y"]))
+
+        return borders
+
+    def get_borders(self):
+
+        return sorted(self._get_borders())
 
 
 class Player(object):

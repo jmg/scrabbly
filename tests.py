@@ -72,15 +72,54 @@ class RulesTests(unittest.TestCase):
         word_2 = Word([Tile("O", (2,0)), Tile("F", (2,1))])
         self.assertTrue(self.board.is_valid_play(word_2))
 
-    def test_is_right_inverted_word(self):
+    def test_is_right_horizontal_inverted_word(self):
 
         word = Word([Tile("F", (1,0)), Tile("O", (0,0))])
         self.assertTrue(self.board.is_valid_play(word))
 
-    def test_is_wrong_inverted_word(self):
+    def test_is_wrong_horizontal_inverted_word(self):
 
         word = Word([Tile("F", (0,0)), Tile("O", (1,0))])
         self.assertFalse(self.board.is_valid_play(word))
+
+    def test_is_right_vertical_inverted_word(self):
+
+        word = Word([Tile("M", (1,1)), Tile("E", (1,4)), Tile("K", (1,3)), Tile("A", (1,2))])
+        self.assertTrue(self.board.is_valid_play(word))
+
+    def test_is_wrong_vertical_inverted_word(self):
+
+        word = Word([Tile("M", (1,-4)), Tile("A", (1,-3)), Tile("K", (1,-1)), Tile("E", (1,-2))])
+        self.assertFalse(self.board.is_valid_play(word))
+
+    def _test_word_is_extended_word(self):
+
+        word = Word([Tile("W", (0,0)), Tile("O", (1,0)), Tile("R", (2,0)), Tile("D", (3,0))])
+        self.board.play(word)
+        word_2 = Word([Tile("S", (4,0))])
+        self.board.play(word_2)
+
+    def test_word_is_crossed_word(self):
+
+        word = Word([Tile("W", (0,0)), Tile("O", (1,0)), Tile("R", (2,0)), Tile("D", (3,0))])
+        self.board.play(word)
+        word_2 = Word([Tile("F", (1,1))])
+        self.board.play(word_2)
+
+
+class WordTests(unittest.TestCase):
+
+    def test_get_word_borders(self):
+
+        word = Word([Tile("O", (1,0)), Tile("F", (2,0))])
+        borders = sorted([(0,0), (3,0), (1,-1), (1,1), (2,-1), (2,1)])
+        self.assertEquals(word.get_borders(), borders)
+
+    def test_get_word_borders_2(self):
+
+        word = Word([Tile("O", (1,0))])
+        borders = sorted([(0,0), (2,0), (1,-1), (1,1)])
+        self.assertEquals(word.get_borders(), borders)
 
 
 class PlayerTests(unittest.TestCase):
@@ -101,7 +140,6 @@ class PlayerTests(unittest.TestCase):
 
         self.assertEquals(self.player1.points, 5)
         self.assertEquals(self.player2.points, 5)
-
 
 
 unittest.main()
