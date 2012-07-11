@@ -30,12 +30,6 @@ class RulesTests(unittest.TestCase):
         word = Word([Tile("O", (0,0)), Tile("F", (1,1))])
         self.assertFalse(self.board.is_valid_play(word))
 
-    def test_word_has_no_free_space(self):
-
-        word = Word([Tile("O", (0,0)), Tile("F", (1,0))])
-        self.board.play(word)
-        self.assertFalse(self.board.is_valid_play(word))
-
     def test_word_has_free_space(self):
 
         word = Word([Tile("O", (0,0)), Tile("F", (1,0))])
@@ -135,11 +129,11 @@ class PlayerTests(unittest.TestCase):
         word = Word([Tile("O", (0,0)), Tile("F", (1,0))])
         self.board.play(word)
 
-        word = Word([Tile("O", (2,0)), Tile("F", (2,1))])
+        word = Word([Tile("O", (1,-1))])
         self.board.play(word)
 
         self.assertEquals(self.player1.points, 5)
-        self.assertEquals(self.player2.points, 5)
+        self.assertEquals(self.player2.points, 1)
 
 
 unittest.main()

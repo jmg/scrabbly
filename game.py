@@ -7,8 +7,13 @@ class InvalidPlayError(Exception):
 
 class ScrabbleMatrix(dict):
 
+    def __init__(self):
+
+        self.find_methods = {"x": self._find_word_x, "y": self._find_word_y }
+
     def has_free_space(self, word):
 
+        return True
         return all([not tile.coords() in self for tile in word.tiles])
 
     def _is_empty(self):
@@ -39,11 +44,48 @@ class ScrabbleMatrix(dict):
 
         return word.get_points()
 
+    def _find_word_x(self):
+
+        pass
+
+    def _finder(self, tiles, x, y, increment):
+
+        while True:
+            tile = self.get((x, y))
+            if tile is None:
+                break
+            else:
+                tiles.append(tile)
+                y += increment
+
+        return tiles
+
+    def _find_word_y(self, tile, tiles):
+
+        tiles = self._finder(tiles, tile.x, tile.y - 1, -1)
+        tiles = self._finder(tiles, tile.x, tile.y + 1, 1)
+
+        return tiles
+
+    def _find_word(self, border_tile, word):
+
+        tiles = [tile for tile in word.tiles]
+        tiles.append(border_tile)
+
+        tiles = self.find_methods[word.alignment](border_tile, tiles)
+
+        return Word(tiles)
+
     def join_word(self, word):
 
-        borders = word.get_borders()
-        for border in borders:
+        words = []
+
+        for border in word.get_borders():
             tile = self.get(border)
+            if tile is not None:
+                words.append(self._find_word(tile, word))
+
+        return words
 
 
 class Board(object):
@@ -66,17 +108,24 @@ class Board(object):
 
     def play(self, word):
 
-        self.matrix.join_word(word)
+        words = self.matrix.join_word(word)
 
-        if self.is_valid_play(word):
+        if self.is_valid_play(words):
             self.players[self.turn].points += self.matrix.add_word(word)
             self.next_player()
         else:
             raise InvalidPlayError()
 
-    def is_valid_play(self, word):
+    def is_valid_play(self, words):
 
-        return word.is_valid() and self.matrix.is_valid_play(word)
+        if not isinstance(words, list):
+            words = [words]
+
+        for word in words:
+            if not word.is_valid() or not self.matrix.is_valid_play(word):
+                return False
+
+        return True
 
 
 class Dictionary(object):
