@@ -13,7 +13,6 @@ class ScrabbleMatrix(dict):
 
     def has_free_space(self, word):
 
-        return True
         return all([not tile.coords() in self for tile in word.tiles])
 
     def _is_empty(self):
@@ -35,18 +34,17 @@ class ScrabbleMatrix(dict):
 
     def is_valid_play(self, word):
 
-        return self.has_free_space(word) and self.is_bordering_word(word)
+        return self.is_bordering_word(word)
+
+    def add_words(self, words):
+
+        for word in words:
+            self.add_word(word)
 
     def add_word(self, word):
 
         for tile in word.tiles:
             self[tile.coords()] = tile
-
-        return word.get_points()
-
-    def _find_word_x(self):
-
-        pass
 
     def _finder(self, tiles, x, y, increment):
 
@@ -67,18 +65,28 @@ class ScrabbleMatrix(dict):
 
         return tiles
 
+    def _find_word_x(self, tile, tiles):
+
+        tiles = self._finder(tiles, tile.x, tile.y - 1, -1)
+        tiles = self._finder(tiles, tile.x, tile.y + 1, 1)
+
+        return tiles
+
     def _find_word(self, border_tile, word):
 
         tiles = [tile for tile in word.tiles]
         tiles.append(border_tile)
 
-        tiles = self.find_methods[word.alignment](border_tile, tiles)
-
         return Word(tiles)
 
     def join_word(self, word):
 
+        if self._is_empty():
+            return [word]
+
         words = []
+        if word.is_valid():
+            words.append(word)
 
         for border in word.get_borders():
             tile = self.get(border)
@@ -108,24 +116,26 @@ class Board(object):
 
     def play(self, word):
 
-        words = self.matrix.join_word(word)
+        self.players[self.turn].points += self._play(word)
+        self.next_player()
 
-        if self.is_valid_play(words):
-            self.players[self.turn].points += self.matrix.add_word(word)
-            self.next_player()
-        else:
+    def _play(self, word):
+
+        if not word.alignment.is_valid():
             raise InvalidPlayError()
 
-    def is_valid_play(self, words):
-
-        if not isinstance(words, list):
-            words = [words]
+        words = self.matrix.join_word(word)
+        points = 0
 
         for word in words:
             if not word.is_valid() or not self.matrix.is_valid_play(word):
-                return False
+                raise InvalidPlayError()
 
-        return True
+            points += word.get_points()
+
+        self.matrix.add_words(words)
+
+        return points
 
 
 class Dictionary(object):
@@ -134,7 +144,7 @@ class Dictionary(object):
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
-        "I": 1, "J": 8, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
+        "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
         "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
         "Y": 8, "Z": 10,
     }
@@ -172,22 +182,71 @@ class Tile(object):
 
     def coords(self):
 
-        return self.x, self.y
+        return (self.x, self.y)
+
+    def get_up_border(self):
+
+        return (self.x, self.y - 1)
+
+    def get_down_border(self):
+
+        return (self.x, self.y + 1)
+
+    def get_right_border(self):
+
+        return (self.x + 1, self.y)
+
+    def get_left_border(self):
+
+        return (self.x - 1, self.y)
+
+    def get_borders(self, word):
+
+        borders = [self.get_up_border(), self.get_down_border(), self.get_right_border(), self.get_left_border()]
+        return [border for border in borders if border not in word.coords()]
 
     def __repr__(self):
 
         return "%s %s" % (self.char, str(self.coords()))
 
 
+class WordAlignment(object):
+
+    def is_valid(self):
+
+        return False
+
+
+class HorizontalAlignment(WordAlignment):
+
+    axis = "x"
+    opposite_axis = "y"
+
+    def is_valid(self):
+
+        return True
+
+
+class VerticalAlignment(WordAlignment):
+
+    axis = "y"
+    opposite_axis = "x"
+
+    def is_valid(self):
+
+        return True
+
+
 class Word(object):
 
     def __init__(self, tiles):
 
-        self.alignments = {"x": self._is_horizontal, "y": self._is_vertical }
+        self.alignments = {self._is_horizontal: HorizontalAlignment, self._is_vertical: VerticalAlignment }
         self.tiles = tiles
 
         self.alignment = self._get_alignment()
-        if self.alignment is not None:
+
+        if self.alignment.is_valid():
             self.tiles = self._sort()
 
     def __unicode__(self):
@@ -200,25 +259,27 @@ class Word(object):
 
     def _sort(self):
 
-        return sorted(self.tiles, key=lambda tile: getattr(tile, self.alignment))
+        return sorted(self.tiles, key=lambda tile: getattr(tile, self.alignment.axis))
 
     def _get_alignment(self):
 
-        for axis, function in self.alignments.iteritems():
+        for function, alignment in self.alignments.iteritems():
             if function():
-                return axis
+                return alignment()
 
-    def _has_valid_position(self):
-
-        return self.alignment is not None
+        return WordAlignment()
 
     def _is_vertical(self):
 
-        return len(self._get_coord_values_set("x")) == 1 and self._is_continous("y")
+        return len(self._get_coord_values_set("x")) == 1
 
     def _is_horizontal(self):
 
-        return len(self._get_coord_values_set("y")) == 1 and self._is_continous("x")
+        return len(self._get_coord_values_set("y")) == 1
+
+    def _has_valid_position(self):
+
+        return self.alignment.is_valid() and self._is_continous(self.alignment.axis)
 
     def _get_coord_values_set(self, coord):
 
@@ -242,6 +303,10 @@ class Word(object):
 
         return [getattr(tile, coord) for tile in self.tiles]
 
+    def coords(self):
+
+        return [tile.coords() for tile in self.tiles]
+
     def get_points(self):
 
         return sum([Dictionary.letters[unicode(tile)] for tile in self.tiles])
@@ -250,45 +315,13 @@ class Word(object):
 
         return unicode(self) in Dictionary.words and self._has_valid_position()
 
-    first_borders_values = {
-        "x": {"x": -1, "y": 0},
-        "y": {"x": 0, "y": -1}
-    }
-
-    last_borders_values = {
-        "x": {"x": 1, "y": 0},
-        "y": {"x": 0, "y": 1}
-    }
-
-    mid_borders_values = {
-        "x": {"x": 0, "y": 1},
-        "y": {"x": 1, "y": 0}
-    }
-
-    def _get_borders(self):
-
-        borders = []
-
-        y = self.tiles[0].y + self.first_borders_values[self.alignment]["y"]
-        x = self.tiles[0].x + self.first_borders_values[self.alignment]["x"]
-
-        borders.append((x, y))
-
-        y = self.tiles[-1].y + self.last_borders_values[self.alignment]["y"]
-        x = self.tiles[-1].x + self.last_borders_values[self.alignment]["x"]
-
-        borders.append((x, y))
-
-        for tile in self.tiles:
-
-            borders.append((tile.x + self.mid_borders_values[self.alignment]["x"], tile.y + self.mid_borders_values[self.alignment]["y"]))
-            borders.append((tile.x - self.mid_borders_values[self.alignment]["x"], tile.y - self.mid_borders_values[self.alignment]["y"]))
-
-        return borders
-
     def get_borders(self):
 
-        return sorted(self._get_borders())
+        borders = []
+        for tile in self.tiles:
+            borders.extend(tile.get_borders(self))
+
+        return sorted(set(borders))
 
 
 class Player(object):
