@@ -7,10 +7,6 @@ class InvalidPlayError(Exception):
 
 class ScrabbleMatrix(dict):
 
-    def __init__(self):
-
-        self.find_methods = {"x": self._find_word_x, "y": self._find_word_y }
-
     def has_free_space(self, word):
 
         return all([not tile.coords() in self for tile in word.tiles])
@@ -46,38 +42,13 @@ class ScrabbleMatrix(dict):
         for tile in word.tiles:
             self[tile.coords()] = tile
 
-    def _finder(self, tiles, x, y, increment):
-
-        while True:
-            tile = self.get((x, y))
-            if tile is None:
-                break
-            else:
-                tiles.append(tile)
-                y += increment
-
-        return tiles
-
-    def _find_word_y(self, tile, tiles):
-
-        tiles = self._finder(tiles, tile.x, tile.y - 1, -1)
-        tiles = self._finder(tiles, tile.x, tile.y + 1, 1)
-
-        return tiles
-
-    def _find_word_x(self, tile, tiles):
-
-        tiles = self._finder(tiles, tile.x, tile.y - 1, -1)
-        tiles = self._finder(tiles, tile.x, tile.y + 1, 1)
-
-        return tiles
-
     def _find_word(self, border_tile, word):
 
         tiles = [tile for tile in word.tiles]
         tiles.append(border_tile)
 
-        return Word(tiles)
+        word = Word(tiles)
+        return word.find_word(self)
 
     def join_word(self, word):
 
@@ -216,6 +187,26 @@ class WordAlignment(object):
 
         return False
 
+    def _finder(self, tiles, tile, increment, matrix):
+
+        x, y = self._increment_axis((tile.x, tile.y), increment)
+
+        while True:
+            tile = matrix.get((x, y))
+            if tile is None:
+                break
+            else:
+                tiles.append(tile)
+                x, y = self._increment_axis((x,y), increment)
+
+        return tiles
+
+    def find_word(self, word, matrix):
+
+        word.tiles = self._finder(word.tiles, word.tiles[-1], 1, matrix)
+        word.tiles = self._finder(word.tiles, word.tiles[0], -1, matrix)
+        return Word(word.tiles)
+
 
 class HorizontalAlignment(WordAlignment):
 
@@ -226,6 +217,11 @@ class HorizontalAlignment(WordAlignment):
 
         return True
 
+    def _increment_axis(self, coords, increment):
+
+        x, y = coords
+        return x + increment, y
+
 
 class VerticalAlignment(WordAlignment):
 
@@ -235,6 +231,11 @@ class VerticalAlignment(WordAlignment):
     def is_valid(self):
 
         return True
+
+    def _increment_axis(self, coords, increment):
+
+        x, y = coords
+        return x, y + increment
 
 
 class Word(object):
@@ -322,6 +323,10 @@ class Word(object):
             borders.extend(tile.get_borders(self))
 
         return sorted(set(borders))
+
+    def find_word(self, matrix):
+
+        return self.alignment.find_word(self, matrix)
 
 
 class Player(object):

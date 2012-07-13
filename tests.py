@@ -1,6 +1,6 @@
 import unittest
 
-from game import Board, Word, Tile, Player, InvalidPlayError
+from engine import Board, Word, Tile, Player, Dictionary, InvalidPlayError
 
 
 class RulesTests(unittest.TestCase):
@@ -139,8 +139,30 @@ class PlayerTests(unittest.TestCase):
         word_2 = Word([Tile("O", (1,-1))])
         self.board.play(word_2)
 
-        self.assertEquals(self.player1.points, 5)
-        self.assertEquals(self.player2.points, 5)
+        self.assertEquals(self.player1.points, Dictionary.letters["O"] + Dictionary.letters["F"])
+        self.assertEquals(self.player2.points, Dictionary.letters["O"] + Dictionary.letters["F"])
+
+    def test_extend_vertical_word_points(self):
+
+        word = Word([Tile("W", (1,1)), Tile("O", (1,2)), Tile("R", (1,3)), Tile("D", (1,4))])
+        self.board.play(word)
+
+        word_2 = Word([Tile("S", (1,5))])
+        self.board.play(word_2)
+
+        self.assertEquals(self.player1.points, word.get_points())
+        self.assertEquals(self.player2.points, word.get_points() + Dictionary.letters["S"])
+
+    def test_extend_horizontal_word_points(self):
+
+        word = Word([Tile("W", (1,-1)), Tile("O", (2,-1)), Tile("R", (3,-1)), Tile("D", (4,-1))])
+        self.board.play(word)
+
+        word_2 = Word([Tile("S", (5,-1))])
+        self.board.play(word_2)
+
+        self.assertEquals(self.player1.points, word.get_points())
+        self.assertEquals(self.player2.points, word.get_points() + Dictionary.letters["S"])
 
 
 unittest.main()
