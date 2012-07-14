@@ -46,7 +46,7 @@ class ScrabbleMatrix(dict):
 
         new_word = Word([tile, border_tile])
 
-        if new_word.alignment.axis == word.alignment.axis:
+        if new_word.alignment == word.alignment:
             new_word.join(word)
 
         return new_word.find_word(self)
@@ -76,7 +76,6 @@ class Board(object):
     def __init__(self, size, players):
 
         self.height, self.width = size
-        self.dictionary = Dictionary()
         self.matrix = ScrabbleMatrix()
 
         self.players = players
@@ -139,6 +138,10 @@ class Tile(object):
         self.char = char
         self.x, self.y = position
 
+    def __eq__(self, tile):
+
+        return self.coords() == tile.coords() and self.char == tile.char
+
     def __unicode__(self):
 
         return self.char
@@ -166,26 +169,16 @@ class Tile(object):
 
         return (self.x, self.y)
 
-    def get_up_border(self):
-
-        return (self.x, self.y - 1)
-
-    def get_down_border(self):
-
-        return (self.x, self.y + 1)
-
-    def get_right_border(self):
-
-        return (self.x + 1, self.y)
-
-    def get_left_border(self):
-
-        return (self.x - 1, self.y)
-
     def get_borders(self, word):
 
-        borders = [self.get_up_border(), self.get_down_border(), self.get_right_border(), self.get_left_border()]
-        return [(self, border) for border in borders if border not in word.coords()]
+        borders = []
+        for x_offset, y_offset in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+
+            border = (self.x + x_offset, self.y + y_offset)
+            if border not in word.coords():
+                borders.append((self, border))
+
+        return borders
 
     def __repr__(self):
 
@@ -193,6 +186,10 @@ class Tile(object):
 
 
 class WordAlignment(object):
+
+    def __eq__(self, alignment):
+
+        return self.axis == alignment.axis
 
     def is_valid(self):
 
