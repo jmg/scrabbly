@@ -63,7 +63,10 @@ class ScrabbleMatrix(dict):
         for tile, border in word.get_borders():
             border_tile = self.get(border)
             if border_tile is not None:
-                words.append(self._find_word(word, tile, border_tile))
+
+                new_word = self._find_word(word, tile, border_tile)
+                if new_word.coords() not in [w.coords() for w in words]:
+                    words.append(new_word)
 
         return words
 
@@ -116,7 +119,7 @@ class Board(object):
 
 class Dictionary(object):
 
-    words = ["MAKE", "A", "LIST", "OF", "WORDS", "WORD", "DO"]
+    words = ["MAKE", "A", "LIST", "OF", "WORDS", "WORD", "DO", "WAR", "AWARD"]
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
@@ -192,8 +195,9 @@ class WordAlignment(object):
 
         return False
 
-    def _finder(self, tiles, tile, increment, matrix):
+    def _finder(self, tile, increment, matrix):
 
+        tiles = []
         x, y = self._increment_axis((tile.x, tile.y), increment)
 
         while True:
@@ -208,9 +212,12 @@ class WordAlignment(object):
 
     def find_word(self, word, matrix):
 
-        word.tiles = self._finder(word.tiles, word.tiles[-1], 1, matrix)
-        word.tiles = self._finder(word.tiles, word.tiles[0], -1, matrix)
-        return Word(word.tiles)
+        tiles = []
+        for index, increment in [(-1, 1), (-1, -1), (0, -1), (0, 1)]:
+            tiles.extend(self._finder(word.tiles[index], increment, matrix))
+
+        word.join_tiles(tiles)
+        return word
 
 
 class HorizontalAlignment(WordAlignment):
@@ -253,7 +260,7 @@ class Word(object):
         self.alignment = self._get_alignment()
 
         if self.alignment.is_valid():
-            self.tiles = self._sort()
+            self._sort()
 
     def __unicode__(self):
 
@@ -263,9 +270,13 @@ class Word(object):
 
         return "%s %s" % (unicode(self), str([repr(tile) for tile in self.tiles]))
 
+    def __eq__(self, word):
+
+        return self.coords() == word.coords()
+
     def _sort(self):
 
-        return sorted(self.tiles, key=lambda tile: getattr(tile, self.alignment.axis))
+        self.tiles = sorted(self.tiles, key=lambda tile: getattr(tile, self.alignment.axis))
 
     def _get_alignment(self):
 
@@ -335,7 +346,11 @@ class Word(object):
 
     def join(self, word):
 
-        for tile in word.tiles:
+        self.join_tiles(word.tiles)
+
+    def join_tiles(self, tiles):
+
+        for tile in tiles:
             if tile.coords() not in self.coords():
                 self.tiles.append(tile)
 

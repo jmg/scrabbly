@@ -176,5 +176,16 @@ class PlayerTests(unittest.TestCase):
         self.assertEquals(self.player1.points, word.get_points())
         self.assertEquals(self.player2.points, word_2.get_points() * 2 + word.get_points())
 
+    def test_double_extend_word_points(self):
+
+        word = Word([Tile("W", (0,0)), Tile("A", (1,0)), Tile("R", (2,0))])
+        self.board.play(word)
+
+        word_2 = Word([Tile("A", (-1,0)), Tile("D", (3,0))])
+        self.board.play(word_2)
+
+        self.assertEquals(self.player1.points, word.get_points())
+        self.assertEquals(self.player2.points, word.get_points() + word_2.get_points())
+
 
 unittest.main()
