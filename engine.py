@@ -42,13 +42,14 @@ class ScrabbleMatrix(dict):
         for tile in word.tiles:
             self[tile.coords()] = tile
 
-    def _find_word(self, border_tile, word):
+    def _find_word(self, word, tile, border_tile):
 
-        tiles = [tile for tile in word.tiles]
-        tiles.append(border_tile)
+        new_word = Word([tile, border_tile])
 
-        word = Word(tiles)
-        return word.find_word(self)
+        if new_word.alignment.axis == word.alignment.axis:
+            new_word.join(word)
+
+        return new_word.find_word(self)
 
     def join_word(self, word):
 
@@ -59,10 +60,10 @@ class ScrabbleMatrix(dict):
         if word.is_valid():
             words.append(word)
 
-        for border in word.get_borders():
-            tile = self.get(border)
-            if tile is not None:
-                words.append(self._find_word(tile, word))
+        for tile, border in word.get_borders():
+            border_tile = self.get(border)
+            if border_tile is not None:
+                words.append(self._find_word(word, tile, border_tile))
 
         return words
 
@@ -93,14 +94,18 @@ class Board(object):
     def _play(self, word):
 
         if not word.alignment.is_valid():
-            raise InvalidPlayError()
+            raise InvalidPlayError("Wrong word alignment: %s" % unicode(word))
 
         words = self.matrix.join_word(word)
         points = 0
 
         for word in words:
-            if not word.is_valid() or not self.matrix.is_valid_play(word):
-                raise InvalidPlayError()
+
+            if not word.is_valid():
+                raise InvalidPlayError("Word is not valid: %s" % unicode(word))
+
+            if not self.matrix.is_valid_play(word):
+                raise InvalidPlayError("Board is not valid play: : %s" % unicode(word))
 
             points += word.get_points()
 
@@ -111,7 +116,7 @@ class Board(object):
 
 class Dictionary(object):
 
-    words = ["MAKE", "A", "LIST", "OF", "WORDS", "WORD"]
+    words = ["MAKE", "A", "LIST", "OF", "WORDS", "WORD", "DO"]
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
@@ -174,7 +179,7 @@ class Tile(object):
     def get_borders(self, word):
 
         borders = [self.get_up_border(), self.get_down_border(), self.get_right_border(), self.get_left_border()]
-        return [border for border in borders if border not in word.coords()]
+        return [(self, border) for border in borders if border not in word.coords()]
 
     def __repr__(self):
 
@@ -327,6 +332,14 @@ class Word(object):
     def find_word(self, matrix):
 
         return self.alignment.find_word(self, matrix)
+
+    def join(self, word):
+
+        for tile in word.tiles:
+            if tile.coords() not in self.coords():
+                self.tiles.append(tile)
+
+        self._sort()
 
 
 class Player(object):
