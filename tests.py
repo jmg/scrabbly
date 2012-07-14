@@ -93,7 +93,7 @@ class RulesTests(unittest.TestCase):
         word = Word([Tile("M", (1,-4)), Tile("A", (1,-3)), Tile("K", (1,-1)), Tile("E", (1,-2))])
         self.assertRaises(InvalidPlayError, self.board.play, word)
 
-    def _test_word_is_extended_word(self):
+    def test_word_is_extended_word(self):
 
         word = Word([Tile("W", (0,0)), Tile("O", (1,0)), Tile("R", (2,0)), Tile("D", (3,0))])
         self.board.play(word)
@@ -107,13 +107,21 @@ class RulesTests(unittest.TestCase):
         word_2 = Word([Tile("F", (1,1))])
         self.board.play(word_2)
 
+    def test_has_no_free_space_word(self):
+
+        word = Word([Tile("F", (1,0)), Tile("O", (0,0))])
+        self.board.play(word)
+        self.assertRaises(InvalidPlayError, self.board.play, word)
+
 
 class WordTests(unittest.TestCase):
 
-    def _test_get_word_borders(self):
+    def test_get_word_borders(self):
 
-        word = Word([Tile("O", (1,0)), Tile("F", (2,0))])
-        borders = sorted([(0,0), (3,0), (1,-1), (1,1), (2,-1), (2,1)])
+        o = Tile("O", (1,0))
+        f = Tile("F", (2,0))
+        word = Word([o,f])
+        borders = sorted([(o,(0,0)), (f,(3,0)), (o,(1,-1)), (o,(1,1)), (f,(2,-1)), (f,(2,1))])
         self.assertEquals(word.get_borders(), borders)
 
     def test_get_word_borders_2(self):

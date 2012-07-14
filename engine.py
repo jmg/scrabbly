@@ -65,7 +65,7 @@ class ScrabbleMatrix(dict):
             if border_tile is not None:
 
                 new_word = self._find_word(word, tile, border_tile)
-                if new_word.coords() not in [w.coords() for w in words]:
+                if new_word not in words:
                     words.append(new_word)
 
         return words
@@ -98,6 +98,9 @@ class Board(object):
 
         if not word.alignment.is_valid():
             raise InvalidPlayError("Wrong word alignment: %s" % unicode(word))
+
+        if not self.matrix.has_free_space(word):
+            raise InvalidPlayError("Tiles don't have free space: %s" % unicode(word))
 
         words = self.matrix.join_word(word)
         points = 0
@@ -219,6 +222,10 @@ class WordAlignment(object):
         word.join_tiles(tiles)
         return word
 
+    def _increment_axis(self, coords, increment):
+
+        raise InvalidPlayError("Invalid word alignment")
+
 
 class HorizontalAlignment(WordAlignment):
 
@@ -272,7 +279,7 @@ class Word(object):
 
     def __eq__(self, word):
 
-        return self.coords() == word.coords()
+        return self.coords() == word.coords() and self.tiles == word.tiles
 
     def _sort(self):
 
