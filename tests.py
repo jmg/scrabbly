@@ -1,6 +1,6 @@
 import unittest
 
-from engine import Board, Word, Tile, Player, Dictionary, InvalidPlayError
+from scrabbly.engine import Board, Word, Tile, Player, Dictionary, InvalidPlayError
 
 
 class RulesTests(unittest.TestCase):
