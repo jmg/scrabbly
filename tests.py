@@ -113,6 +113,22 @@ class RulesTests(unittest.TestCase):
         self.board.play(word)
         self.assertRaises(InvalidPlayError, self.board.play, word)
 
+    def test_no_words_formed(self):
+
+        word = Word([Tile("F", (1,0)), Tile("O", (0,0))])
+        self.board.play(word)
+        word_2 = Word([Tile("J", (9,9))])
+        self.assertRaises(InvalidPlayError, self.board.play, word_2)
+
+    def test_valid_and_invalid_words(self):
+
+        word = Word([Tile("F", (1,0)), Tile("O", (0,0))])
+        self.board.play(word)
+        word_2 = Word([Tile("D", (0,-1)), Tile("Z", (-1,-1))])
+        #import ipdb; ipdb.set_trace()
+        #self.board.play(word_2)
+        self.assertRaises(InvalidPlayError, self.board.play, word_2)
+
 
 class WordTests(unittest.TestCase):
 
@@ -193,7 +209,7 @@ class PlayerTests(unittest.TestCase):
         self.board.play(word_2)
 
         self.assertEquals(self.player1.points, word.get_points())
-        self.assertEquals(self.player2.points, word.get_points() + word_2.get_points())
+        self.assertEquals(self.player2.points, word_2.get_points())
 
 
 unittest.main()

@@ -57,8 +57,10 @@ class ScrabbleMatrix(dict):
             return [word]
 
         words = []
-        if word.is_valid():
-            words.append(word)
+
+        new_word = word.find_word(self)
+        if new_word is not None:
+            words.append(new_word)
 
         for tile, border in word.get_borders():
             border_tile = self.get(border)
@@ -104,6 +106,9 @@ class Board(object):
         words = self.matrix.join_word(word)
         points = 0
 
+        if not words:
+            raise InvalidPlayError("Wrong word alignment: %s" % unicode(word))
+
         for word in words:
 
             if not word.is_valid():
@@ -140,7 +145,7 @@ class Tile(object):
 
     def __eq__(self, tile):
 
-        return self.coords() == tile.coords() and self.char == tile.char
+        return tile is not None and self.coords() == tile.coords() and self.char == tile.char
 
     def __unicode__(self):
 
@@ -217,6 +222,10 @@ class WordAlignment(object):
             tiles.extend(self._finder(word.tiles[index], increment, matrix))
 
         word.join_tiles(tiles)
+
+        if len(word.tiles) == 1:
+            return None
+
         return word
 
     def _increment_axis(self, coords, increment):
