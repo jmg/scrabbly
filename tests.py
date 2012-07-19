@@ -120,14 +120,16 @@ class RulesTests(unittest.TestCase):
         word_2 = Word([Tile("J", (9,9))])
         self.assertRaises(InvalidPlayError, self.board.play, word_2)
 
-    def test_valid_and_invalid_words(self):
+    def test_valid_3_words(self):
 
-        word = Word([Tile("F", (1,0)), Tile("O", (0,0))])
+        word = Word([Tile("O", (0,0)), Tile("F", (1,0))])
         self.board.play(word)
-        word_2 = Word([Tile("D", (0,-1)), Tile("Z", (-1,-1))])
-        #import ipdb; ipdb.set_trace()
-        #self.board.play(word_2)
-        self.assertRaises(InvalidPlayError, self.board.play, word_2)
+
+        word_2 = Word([Tile("D", (0,-1))])
+        self.board.play(word_2)
+
+        word_3 = Word([Tile("O", (1,-1))])
+        self.board.play(word_3)
 
 
 class WordTests(unittest.TestCase):
