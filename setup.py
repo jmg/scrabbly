@@ -3,6 +3,7 @@
 from setuptools import setup, find_packages
 import os
 
+
 setup(
     name="scrabbly",
     version="0.0.1",
@@ -12,6 +13,7 @@ setup(
     license = "GPL v3",
     keywords = "Scrabble",
     packages=["scrabbly"],
+    data_files=[("scrabbly", ["scrabbly/spanish.txt"])],
     install_requires=[
     ],
     url='',

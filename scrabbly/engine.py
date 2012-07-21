@@ -126,7 +126,9 @@ class Board(object):
 
 class Dictionary(object):
 
-    words = ["MAKE", "A", "LIST", "OF", "WORDS", "WORD", "DO", "WAR", "AWARD"]
+    import os.path
+    path = os.path.dirname(os.path.abspath(__file__))
+    words = open(os.path.join(path, "spanish.txt")).read().split()
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
@@ -277,7 +279,8 @@ class Word(object):
 
     def __unicode__(self):
 
-        return "".join([unicode(char) for char in self.tiles])
+        word = "".join([unicode(char) for char in self.tiles])
+        return word.lower()
 
     def __repr__(self):
 
