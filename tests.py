@@ -43,7 +43,7 @@ class RulesTests(unittest.TestCase):
     def test_get_word_points(self):
 
         word = Word([Tile("O", (1,0)), Tile("F", (2,0))])
-        self.assertEquals(word.get_points(), 5)
+        self.assertEquals(word.get_points(self.board), 5)
 
     def test_word_is_not_bordering(self):
 
@@ -166,8 +166,8 @@ class PlayerTests(unittest.TestCase):
         word_2 = Word([Tile("O", (1,-1))])
         self.board.play(word_2)
 
-        self.assertEquals(self.player1.points, Dictionary.letters["O"] + Dictionary.letters["F"])
-        self.assertEquals(self.player2.points, Dictionary.letters["O"] + Dictionary.letters["F"])
+        self.assertEquals(self.player1.points, Dictionary(self.board.language).letters["O"] + Dictionary(self.board.language).letters["F"])
+        self.assertEquals(self.player2.points, Dictionary(self.board.language).letters["O"] + Dictionary(self.board.language).letters["F"])
 
     def test_extend_vertical_word_points(self):
 
@@ -177,8 +177,8 @@ class PlayerTests(unittest.TestCase):
         word_2 = Word([Tile("S", (1,5))])
         self.board.play(word_2)
 
-        self.assertEquals(self.player1.points, word.get_points())
-        self.assertEquals(self.player2.points, word.get_points() + Dictionary.letters["S"])
+        self.assertEquals(self.player1.points, word.get_points(self.board))
+        self.assertEquals(self.player2.points, word.get_points(self.board) + Dictionary(self.board.language).letters["S"])
 
     def test_extend_horizontal_word_points(self):
 
@@ -188,8 +188,8 @@ class PlayerTests(unittest.TestCase):
         word_2 = Word([Tile("S", (5,-1))])
         self.board.play(word_2)
 
-        self.assertEquals(self.player1.points, word.get_points())
-        self.assertEquals(self.player2.points, word.get_points() + Dictionary.letters["S"])
+        self.assertEquals(self.player1.points, word.get_points(self.board))
+        self.assertEquals(self.player2.points, word.get_points(self.board) + Dictionary(self.board.language).letters["S"])
 
     def test_two_words_points(self):
 
@@ -199,8 +199,8 @@ class PlayerTests(unittest.TestCase):
         word_2 = Word([Tile("D", (0,-1)), Tile("O", (1,-1))])
         self.board.play(word_2)
 
-        self.assertEquals(self.player1.points, word.get_points())
-        self.assertEquals(self.player2.points, word_2.get_points() * 2 + word.get_points())
+        self.assertEquals(self.player1.points, word.get_points(self.board))
+        self.assertEquals(self.player2.points, word_2.get_points(self.board) * 2 + word.get_points(self.board))
 
     def test_double_extend_word_points(self):
 
@@ -210,8 +210,8 @@ class PlayerTests(unittest.TestCase):
         word_2 = Word([Tile("A", (-1,0)), Tile("D", (3,0))])
         self.board.play(word_2)
 
-        self.assertEquals(self.player1.points, word.get_points())
-        self.assertEquals(self.player2.points, word_2.get_points())
+        self.assertEquals(self.player1.points, word.get_points(self.board))
+        self.assertEquals(self.player2.points, word_2.get_points(self.board))
 
 
 class DictTests(unittest.TestCase):
@@ -222,8 +222,15 @@ class DictTests(unittest.TestCase):
 
     def test_word_not_in_dict(self):
 
-        self.assertFalse("rockelingo" in Dictionary())
+        self.assertFalse("pato" in Dictionary())
 
+    def test_word_in_dict_spanish(self):
+
+        self.assertTrue("pato" in Dictionary("spanish"))
+
+    def test_word_not_in_dict_spanish(self):
+
+        self.assertFalse("duck" in Dictionary("spanish"))
 
 
 unittest.main()

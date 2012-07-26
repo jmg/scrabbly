@@ -78,10 +78,11 @@ class ScrabbleMatrix(dict):
 
 class Board(object):
 
-    def __init__(self, size, players):
+    def __init__(self, size, players, language="english"):
 
         self.height, self.width = size
         self.matrix = ScrabbleMatrix()
+        self.language = language
 
         self.players = players
         self.turn = 0
@@ -114,13 +115,13 @@ class Board(object):
 
         for word in words:
 
-            if not word.is_valid():
+            if not word.is_valid(self):
                 raise InvalidPlayError("Word is not valid: %s" % unicode(word))
 
             if not self.matrix.is_valid_play(word):
                 raise InvalidPlayError("Board is not valid play: : %s" % unicode(word))
 
-            points += word.get_points()
+            points += word.get_points(self)
 
         self.matrix.add_words(words)
 
@@ -129,20 +130,41 @@ class Board(object):
 
 class Dictionary(object):
 
+    def __init__(self, language="english"):
+
+        self.language = language
+
     def __contains__(self, word):
 
-        with open(os.path.join(__dir__, "english.txt")) as f:
+        with open(os.path.join(__dir__, "%s.txt" % self.language)) as f:
             data = f.read()
-            
+
         reg = re.compile(r'\b%s\b' % word)
         return bool(reg.search(data))
 
-    letters = {
-        "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
-        "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
-        "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
-        "Y": 8, "Z": 10,
+    _letters = {
+        "spanish": {
+            "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
+            "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
+            "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
+            "Y": 8, "Z": 10,
+        },
+        "english": {
+            "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
+            "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
+            "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
+            "Y": 8, "Z": 10,
+        },
     }
+
+    def letters():
+
+        def fget(self):
+            return self._letters[self.language]
+
+        return locals()
+
+    letters = property(**letters())
 
 
 class Tile(object):
@@ -347,13 +369,13 @@ class Word(object):
 
         return [tile.coords() for tile in self.tiles]
 
-    def get_points(self):
+    def get_points(self, board):
 
-        return sum([Dictionary.letters[unicode(tile)] for tile in self.tiles])
+        return sum([Dictionary(board.language).letters[unicode(tile)] for tile in self.tiles])
 
-    def is_valid(self):
+    def is_valid(self, board):
 
-        return unicode(self) in Dictionary() and self._has_valid_position()
+        return unicode(self) in Dictionary(board.language) and self._has_valid_position()
 
     def get_borders(self):
 
