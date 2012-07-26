@@ -214,4 +214,11 @@ class PlayerTests(unittest.TestCase):
         self.assertEquals(self.player2.points, word_2.get_points())
 
 
+class DictTests(unittest.TestCase):
+
+    def test_word_in_dict(self):
+
+        self.assertTrue("pato" in Dictionary())
+
+
 unittest.main()

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import re
+import os.path
+__dir__ = os.path.dirname(os.path.abspath(__file__))
 
 class InvalidPlayError(Exception):
 
@@ -126,9 +129,14 @@ class Board(object):
 
 class Dictionary(object):
 
-    import os.path
-    path = os.path.dirname(os.path.abspath(__file__))
-    words = open(os.path.join(path, "spanish.txt")).read().split()
+    def __contains__(self, word):
+
+        with open(os.path.join(__dir__, "spanish.txt")) as f:
+
+            data = f.read()
+            reg = re.compile(r'\b%s\b' % word)
+            return bool(reg.search(data))
+
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
@@ -346,7 +354,7 @@ class Word(object):
 
     def is_valid(self):
 
-        return unicode(self) in Dictionary.words and self._has_valid_position()
+        return unicode(self) in Dictionary() and self._has_valid_position()
 
     def get_borders(self):
 
