@@ -131,12 +131,11 @@ class Dictionary(object):
 
     def __contains__(self, word):
 
-        with open(os.path.join(__dir__, "spanish.txt")) as f:
-
+        with open(os.path.join(__dir__, "english.txt")) as f:
             data = f.read()
-            reg = re.compile(r'\b%s\b' % word)
-            return bool(reg.search(data))
-
+            
+        reg = re.compile(r'\b%s\b' % word)
+        return bool(reg.search(data))
 
     letters = {
         "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,

@@ -218,7 +218,12 @@ class DictTests(unittest.TestCase):
 
     def test_word_in_dict(self):
 
-        self.assertTrue("pato" in Dictionary())
+        self.assertTrue("duck" in Dictionary())
+
+    def test_word_not_in_dict(self):
+
+        self.assertFalse("rockelingo" in Dictionary())
+
 
 
 unittest.main()

@@ -13,7 +13,10 @@ setup(
     license = "GPL v3",
     keywords = "Scrabble",
     packages=["scrabbly"],
-    data_files=[("scrabbly", ["scrabbly/spanish.txt"]) ],
+    data_files=[
+        ("scrabbly", ["scrabbly/spanish.txt"]),
+    ],
+    include_package_data=True,
     install_requires=[
     ],
     url='',
