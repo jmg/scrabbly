@@ -233,4 +233,31 @@ class DictTests(unittest.TestCase):
         self.assertFalse("duck" in Dictionary("spanish"))
 
 
+class RandomTilesTests(unittest.TestCase):
+
+    def setUp(self):
+
+        self.player1 = Player("jmbot")
+        self.player2 = Player("ro")
+        self.board = Board((15,15), [self.player1, self.player2])
+
+    def test_random_tiles(self):
+
+        self.assertEquals(7, len(self.board.get_random_tiles()))
+        self.assertEquals(1, len(self.board.get_random_tiles(1)))
+
+    def test_no_more_tiles_left(self):
+
+        for i in range(13):
+            self.board.get_random_tiles()
+
+        self.assertRaises(InvalidPlayError, self.board.get_random_tiles, 7)
+
+    def test_all_tiles(self):
+
+        letters = self.board._get_all_letters()
+        for letter, quantity in self.board.tiles_quantity.iteritems():
+            self.assertEquals(letters.count(letter), quantity)
+
+
 unittest.main()

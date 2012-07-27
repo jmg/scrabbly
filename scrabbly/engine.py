@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 import os.path
+from random import shuffle
+
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
 class InvalidPlayError(Exception):
@@ -84,6 +86,21 @@ class Board(object):
         self.matrix = ScrabbleMatrix()
         self.language = language
 
+        self.tiles_quantity = {
+            "spanish": {
+                "A": 9, "B": 2, "C": 2, "D": 4, "E": 12, "F": 2, "G": 3, "H": 2,
+                "I": 9, "J": 1, "L": 4, "M": 2, "N": 6, "Ñ": 1, "O": 8, "P": 1,
+                "Q": 1, "R": 6, "S": 4, "T": 6, "U": 4, "V": 2, "X": 1, "Y": 2, 
+                "Z": 1,
+            },
+            "english": {
+                "A": 9, "B": 2, "C": 2, "D": 4, "E": 12, "F": 2, "G": 3, "H": 2,
+                "I": 9, "J": 1, "K": 1, "L": 4, "M": 2, "N": 6, "O": 8, "P": 1,
+                "Q": 1, "R": 6, "S": 4, "T": 6, "U": 4, "V": 2, "W": 2, "X": 1, 
+                "Y": 2, "Z": 1,
+            },
+        }[language]
+
         self.players = players
         self.turn = 0
 
@@ -93,6 +110,30 @@ class Board(object):
             self.turn = 0
         else:
             self.turn += 1
+
+    def _get_all_letters(self):
+
+        letters = []        
+        for key, value in self.tiles_quantity.iteritems():
+            if value > 0:
+                letters.extend([key] * value)
+
+        return letters
+
+    def _get_random_tile(self):
+
+        letters = self._get_all_letters()
+        if not letters:
+            raise InvalidPlayError("No more tiles left")
+
+        shuffle(letters)
+        letter = letters[0]
+        self.tiles_quantity[letter] -= 1
+        return letter
+
+    def get_random_tiles(self, quantity=7):
+
+        return [self._get_random_tile() for tile in range(quantity)]
 
     def play(self, word):
 
@@ -144,16 +185,16 @@ class Dictionary(object):
 
     _letters = {
         "spanish": {
-            "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
-            "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
-            "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
-            "Y": 8, "Z": 10,
+            "A": 1, "B": 3, "C": 3, "D": 2, "E": 1, "F": 4, "G": 2, "H": 4,
+            "I": 1, "J": 8, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
+            "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "V": 4, "X": 8, "Y": 4, 
+            "Z": 10,
         },
         "english": {
-            "A": 1, "B": 3, "C": 2, "D": 2, "E": 1, "F": 4, "G": 3, "H": 4,
-            "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "Ñ": 8, "O": 1, "P": 3,
-            "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 10, "V": 4, "X": 10,
-            "Y": 8, "Z": 10,
+            "A": 1, "B": 3, "C": 3, "D": 2, "E": 1, "F": 4, "G": 2, "H": 4,
+            "I": 1, "J": 8, "K": 5, "L": 1, "M": 3, "N": 1, "O": 1, "P": 3,
+            "Q": 10, "R": 1, "S": 1, "T": 1, "U": 1, "W": 4, "V": 4, "X": 8,
+            "Y": 4, "Z": 10,
         },
     }
 
