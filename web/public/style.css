@@ -1,0 +1,257 @@
+:root {
+  --bg: #1f2933;
+  --panel: #2c3a47;
+  --panel-2: #3b4a5a;
+  --text: #f5f7fa;
+  --muted: #b3bcc7;
+  --accent: #f0b429;
+  --accent-2: #f9da8b;
+  --tw: #e74c3c;
+  --dw: #f8a5a5;
+  --tl: #2980b9;
+  --dl: #6dc3ec;
+  --st: #f0b429;
+  --tile: #f6e5b3;
+  --tile-fresh: #ffd56b;
+  --error: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+header {
+  text-align: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--panel);
+}
+header h1 { margin: 0; color: var(--accent); }
+header .tagline { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
+
+main {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card h2, .card h3 { margin-top: 0; }
+
+button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--accent-2);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+button:hover { background: var(--accent); color: #1f2933; }
+button.primary { background: var(--accent); color: #1f2933; font-weight: bold; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+input, select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--panel-2);
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+label { display: block; margin: 0.5rem 0; color: var(--muted); font-size: 0.85rem; }
+fieldset {
+  border: 1px solid var(--panel-2);
+  border-radius: 6px;
+  margin: 1rem 0;
+  padding: 0.75rem;
+}
+legend { color: var(--accent); padding: 0 0.5rem; }
+
+.hidden { display: none !important; }
+.error { color: var(--error); min-height: 1.2em; }
+
+/* Lobby */
+#lobby { max-width: 480px; margin: 2rem auto; }
+
+/* Game layout */
+#game {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+#sidebar { display: flex; flex-direction: column; }
+#sidebar .card { margin-bottom: 0.75rem; }
+
+#status-bar {
+  display: flex;
+  justify-content: space-between;
+  background: var(--panel);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+#play-message { color: var(--accent); font-weight: bold; min-height: 1em; }
+#play-message.error { color: var(--error); }
+
+/* Board */
+#board {
+  display: grid;
+  grid-template-columns: repeat(15, 38px);
+  grid-template-rows: repeat(15, 38px);
+  gap: 2px;
+  background: #14202b;
+  padding: 6px;
+  border-radius: 8px;
+  width: max-content;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #44546a;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  user-select: none;
+  position: relative;
+  cursor: pointer;
+}
+.cell.tw { background: var(--tw); color: #fff; font-weight: bold; }
+.cell.dw { background: var(--dw); color: #1f2933; }
+.cell.tl { background: var(--tl); color: #fff; font-weight: bold; }
+.cell.dl { background: var(--dl); color: #1f2933; }
+.cell.st { background: var(--st); color: #1f2933; font-weight: bold; }
+
+.cell .tile {
+  position: absolute;
+  inset: 1px;
+  background: var(--tile);
+  color: #1f2933;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+.cell .tile .val {
+  position: absolute;
+  bottom: 1px; right: 3px;
+  font-size: 0.55rem;
+  font-weight: normal;
+  opacity: 0.7;
+}
+.cell .tile.fresh {
+  background: var(--tile-fresh);
+  outline: 2px solid var(--accent);
+}
+.cell.target { outline: 2px dashed var(--accent); }
+
+/* Rack */
+#rack-area { margin-top: 0.75rem; }
+#rack {
+  display: flex;
+  gap: 6px;
+  background: var(--panel);
+  padding: 8px;
+  border-radius: 8px;
+  min-height: 56px;
+  width: max-content;
+}
+#rack .tile {
+  width: 42px;
+  height: 42px;
+  background: var(--tile);
+  color: #1f2933;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+#rack .tile .val {
+  position: absolute;
+  bottom: 2px; right: 4px;
+  font-size: 0.6rem;
+  font-weight: normal;
+  opacity: 0.7;
+}
+#rack .tile.selected { outline: 3px solid var(--accent); transform: translateY(-3px); }
+#rack .tile.placed { opacity: 0.25; pointer-events: none; }
+#rack .tile.exchange-marked { outline: 3px solid var(--error); }
+
+#actions {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Players list */
+#players { list-style: none; padding: 0; margin: 0; }
+#players li {
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+#players li.turn { background: var(--panel-2); }
+#players .name { font-weight: bold; }
+#players .you::after { content: " (vos)"; color: var(--accent); font-size: 0.8em; }
+#players .offline { color: var(--muted); text-decoration: line-through; }
+
+.history { font-size: 0.85rem; max-height: 200px; overflow-y: auto; padding-left: 1.2rem; }
+.history li { margin: 0.25rem 0; }
+.chat {
+  font-size: 0.85rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.chat li { padding: 0.2rem 0; }
+.chat .who { font-weight: bold; color: var(--accent-2); }
+#chat-form { display: flex; gap: 0.5rem; }
+#chat-form input { flex: 1; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.overlay-card { max-width: 420px; text-align: center; }
+.overlay-card ol { text-align: left; }
+
+@media (max-width: 1000px) {
+  #game { grid-template-columns: 1fr; }
+  #board { grid-template-columns: repeat(15, 28px); grid-template-rows: repeat(15, 28px); }
+  .cell .tile { font-size: 0.85rem; }
+}

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scrabbly</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Scrabbly</h1>
+      <p class="tagline">Scrabble multijugador en tiempo real</p>
+    </header>
+
+    <main id="app">
+      <!-- Lobby -->
+      <section id="lobby" class="card">
+        <h2>Entrar a una partida</h2>
+        <label>
+          Tu nombre
+          <input id="name" type="text" maxlength="20" placeholder="ej. Juan" />
+        </label>
+
+        <fieldset>
+          <legend>Crear sala</legend>
+          <label>
+            Idioma
+            <select id="language">
+              <option value="english">English</option>
+              <option value="spanish" selected>Español</option>
+            </select>
+          </label>
+          <button id="create-btn" type="button">Crear sala</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Unirse a una sala</legend>
+          <label>
+            Código
+            <input id="room-code" type="text" maxlength="8" placeholder="ABCDE" />
+          </label>
+          <button id="join-btn" type="button">Unirme</button>
+        </fieldset>
+
+        <p id="lobby-error" class="error"></p>
+      </section>
+
+      <!-- Game -->
+      <section id="game" class="hidden">
+        <aside id="sidebar">
+          <div class="card">
+            <h3>Sala <span id="room-id-label"></span></h3>
+            <p>Idioma: <span id="lang-label"></span></p>
+            <p>Bolsa: <span id="bag-size">0</span> fichas</p>
+            <button id="start-btn" type="button" class="hidden">Empezar partida</button>
+          </div>
+
+          <div class="card">
+            <h3>Jugadores</h3>
+            <ol id="players"></ol>
+          </div>
+
+          <div class="card">
+            <h3>Historial</h3>
+            <ol id="history" class="history"></ol>
+          </div>
+
+          <div class="card">
+            <h3>Chat</h3>
+            <ol id="chat" class="chat"></ol>
+            <form id="chat-form">
+              <input id="chat-input" type="text" maxlength="200" placeholder="Escribir…" />
+              <button type="submit">Enviar</button>
+            </form>
+          </div>
+        </aside>
+
+        <div id="board-area">
+          <div id="status-bar">
+            <span id="turn-info">Esperando…</span>
+            <span id="play-message"></span>
+          </div>
+          <div id="board"></div>
+          <div id="rack-area">
+            <div id="rack"></div>
+            <div id="actions">
+              <button id="recall-btn" type="button">Devolver fichas</button>
+              <button id="shuffle-btn" type="button">Mezclar atril</button>
+              <button id="exchange-btn" type="button">Cambiar seleccionadas</button>
+              <button id="pass-btn" type="button">Pasar</button>
+              <button id="play-btn" type="button" class="primary">Jugar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game over modal -->
+      <div id="overlay" class="hidden">
+        <div class="card overlay-card">
+          <h2 id="winner-title">Fin de la partida</h2>
+          <ol id="final-scores"></ol>
+          <button id="overlay-close" type="button">Cerrar</button>
+        </div>
+      </div>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="/client.js"></script>
+  </body>
+</html>
