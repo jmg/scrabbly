@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scrabbly"
+version = "0.1.0"
+description = "Scrabble game engine in pure Python."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-or-later"
+authors = [
+    { name = "Juan Manuel García", email = "jmg.utn@gmail.com" },
+]
+keywords = ["scrabble", "game", "engine", "spanish", "english"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment :: Board Games",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "build",
+    "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/jmg/scrabbly"
+Repository = "https://github.com/jmg/scrabbly"
+Issues = "https://github.com/jmg/scrabbly/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scrabbly"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "scrabbly/**",
+    "tests.py",
+    "README.md",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+testpaths = ["tests.py"]

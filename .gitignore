@@ -1,28 +1,36 @@
-*.py[co]
-*.sqlite
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Packages
+# Distribution / packaging
+build/
+dist/
 *.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
+*.egg-info/
+.eggs/
+sdist/
+wheels/
 
-# Installer logs
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.tox/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 pip-log.txt
 
-# Unit test / coverage reports
-.coverage
-.tox
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
 
-#Translations
+# Misc
+*.sqlite
 *.mo
-
-#Mr Developer
-.mr.developer.cfg
