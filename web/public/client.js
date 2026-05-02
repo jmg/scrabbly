@@ -32,6 +32,15 @@ const state = {
   exchangeSelection: new Set(),
 };
 
+// Drag source for the active drag operation. Cleared on dragend.
+// { kind: "rack", index } | { kind: "board", row, col }
+let dragSource = null;
+
+function isOurTurn() {
+  const s = state.serverState;
+  return !!s && s.status === "playing" && s.currentTurn === state.playerId;
+}
+
 function lv(letter) {
   return LETTER_VALUES[state.language]?.[letter.toUpperCase()] ?? 0;
 }
@@ -223,10 +232,28 @@ function renderBoard(s) {
         cell.appendChild(makeTileDom(lockedLetter, false));
       } else if (state.pending.has(`${r},${c}`)) {
         const { letter } = state.pending.get(`${r},${c}`);
-        cell.appendChild(makeTileDom(letter, true));
+        const tile = makeTileDom(letter, true);
+        if (isOurTurn()) {
+          tile.draggable = true;
+          tile.addEventListener("dragstart", (e) => {
+            dragSource = { kind: "board", row: r, col: c };
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", "tile");
+            tile.classList.add("dragging");
+          });
+          tile.addEventListener("dragend", () => {
+            dragSource = null;
+            tile.classList.remove("dragging");
+            clearDropTargets();
+          });
+        }
+        cell.appendChild(tile);
       }
 
       cell.addEventListener("click", () => onCellClick(r, c));
+      cell.addEventListener("dragover", (e) => onCellDragOver(e, r, c, cell));
+      cell.addEventListener("dragleave", () => cell.classList.remove("drop-target"));
+      cell.addEventListener("drop", (e) => onCellDrop(e, r, c, cell));
       boardEl.appendChild(cell);
     }
   }
@@ -274,6 +301,22 @@ function renderRack(s) {
       }
       render();
     });
+
+    if (isOurTurn() && !placedRackIndices.has(idx)) {
+      t.draggable = true;
+      t.addEventListener("dragstart", (e) => {
+        dragSource = { kind: "rack", index: idx };
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", "tile");
+        t.classList.add("dragging");
+      });
+      t.addEventListener("dragend", () => {
+        dragSource = null;
+        t.classList.remove("dragging");
+        clearDropTargets();
+      });
+    }
+
     rackEl.appendChild(t);
   });
 }
@@ -315,6 +358,74 @@ function onCellClick(r, c) {
   state.selectedRackIndex = pickNextUnusedRack(s, rackIdx, used);
   render();
 }
+
+// ---- Drag and drop ------------------------------------------------------
+
+function clearDropTargets() {
+  for (const el of document.querySelectorAll(".drop-target")) {
+    el.classList.remove("drop-target");
+  }
+}
+
+function onCellDragOver(e, r, c, cell) {
+  if (!dragSource || !isOurTurn()) return;
+  const s = state.serverState;
+  if (!s || s.board[r][c] !== null) return; // locked square
+  // Don't highlight the source cell when dragging a board tile onto itself.
+  if (dragSource.kind === "board" && dragSource.row === r && dragSource.col === c) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  cell.classList.add("drop-target");
+}
+
+function onCellDrop(e, r, c, cell) {
+  e.preventDefault();
+  cell.classList.remove("drop-target");
+  if (!dragSource || !isOurTurn()) return;
+  const s = state.serverState;
+  if (!s || s.board[r][c] !== null) return;
+  const destKey = `${r},${c}`;
+
+  if (dragSource.kind === "rack") {
+    const rackIdx = dragSource.index;
+    const used = new Set([...state.pending.values()].map((p) => p.rackIndex));
+    if (used.has(rackIdx)) return;
+    // If destination already holds a pending tile, recall it first.
+    state.pending.delete(destKey);
+    state.pending.set(destKey, { rackIndex: rackIdx, letter: s.yourRack[rackIdx] });
+    state.selectedRackIndex = null;
+  } else if (dragSource.kind === "board") {
+    const srcKey = `${dragSource.row},${dragSource.col}`;
+    if (srcKey === destKey) return;
+    const moving = state.pending.get(srcKey);
+    if (!moving) return;
+    const displaced = state.pending.get(destKey); // swap if dest occupied
+    state.pending.delete(srcKey);
+    state.pending.set(destKey, moving);
+    if (displaced) state.pending.set(srcKey, displaced);
+  }
+  render();
+}
+
+function onRackDragOver(e) {
+  if (!dragSource || dragSource.kind !== "board" || !isOurTurn()) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  rackEl.classList.add("drop-target");
+}
+
+function onRackDrop(e) {
+  e.preventDefault();
+  rackEl.classList.remove("drop-target");
+  if (!dragSource || dragSource.kind !== "board" || !isOurTurn()) return;
+  const srcKey = `${dragSource.row},${dragSource.col}`;
+  state.pending.delete(srcKey);
+  render();
+}
+
+rackEl.addEventListener("dragover", onRackDragOver);
+rackEl.addEventListener("dragleave", () => rackEl.classList.remove("drop-target"));
+rackEl.addEventListener("drop", onRackDrop);
 
 function pickNextUnusedRack(s, current, used) {
   const next = new Set(used);

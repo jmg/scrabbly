@@ -164,6 +164,12 @@ legend { color: var(--accent); padding: 0 0.5rem; }
   outline: 2px solid var(--accent);
 }
 .cell.target { outline: 2px dashed var(--accent); }
+.cell.drop-target { outline: 2px dashed var(--accent); background: rgba(240, 180, 41, 0.18); }
+.cell .tile[draggable="true"] { cursor: grab; }
+.cell .tile.dragging { opacity: 0.4; }
+#rack.drop-target { outline: 2px dashed var(--accent); }
+#rack .tile[draggable="true"] { cursor: grab; }
+#rack .tile.dragging { opacity: 0.4; }
 
 /* Rack */
 #rack-area { margin-top: 0.75rem; }
